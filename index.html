@@ -277,6 +277,10 @@
 
         <div class="request-box">
           <textarea id="req-input" placeholder="Email me every time new research about pheasants is published..."></textarea>
+          <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+            <input id="req-contact" type="text" placeholder="Your Telegram @handle (to receive the answer)"
+              style="width:100%; background:transparent; border:none; color:var(--muted); font-family:var(--font); font-size:0.85rem; outline:none;" />
+          </div>
           <div class="request-footer">
             <span class="request-hint" id="req-hint">Priced in sats · Trust verified on-chain</span>
             <button class="btn" id="req-btn" onclick="submitRequest()">Request →</button>
@@ -442,7 +446,7 @@
         const res = await fetch('https://soma-api.rgiskard.xyz/request', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ request: text }),
+          body: JSON.stringify({ request: text, contact: document.getElementById('req-contact').value.trim() }),
         });
 
         if (res.ok) {
