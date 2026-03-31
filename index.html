@@ -237,10 +237,10 @@
         </p>
 
         <div class="request-box">
-          <textarea placeholder="Email me every time new research about pheasants is published..."></textarea>
+          <textarea id="req-input" placeholder="Email me every time new research about pheasants is published..."></textarea>
           <div class="request-footer">
-            <span class="request-hint">Priced in sats · Trust verified on-chain</span>
-            <button class="btn">Request →</button>
+            <span class="request-hint" id="req-hint">Priced in sats · Trust verified on-chain</span>
+            <button class="btn" id="req-btn" onclick="submitRequest()">Request →</button>
           </div>
         </div>
 
@@ -366,5 +366,44 @@
     </div>
   </footer>
 
+  <script>
+    async function submitRequest() {
+      const input = document.getElementById('req-input');
+      const hint  = document.getElementById('req-hint');
+      const btn   = document.getElementById('req-btn');
+      const text  = input.value.trim();
+
+      if (!text) return;
+
+      btn.disabled  = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        const res = await fetch('https://soma.rgiskard.xyz/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ request: text }),
+        });
+
+        if (res.ok) {
+          input.value       = '';
+          hint.textContent  = 'Received. We\'ll respond within 24h.';
+          hint.style.color  = 'var(--green)';
+          btn.textContent   = 'Sent ✓';
+        } else {
+          throw new Error('server error');
+        }
+      } catch {
+        hint.textContent = 'Something went wrong. Try again.';
+        hint.style.color = '#e57373';
+        btn.disabled     = false;
+        btn.textContent  = 'Request →';
+      }
+    }
+
+    document.getElementById('req-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitRequest();
+    });
+  </script>
 </body>
 </html>
