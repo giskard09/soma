@@ -74,6 +74,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8020))
+    port = int(os.getenv("PORT", 8022))
     print(f"Soma concierge listening on :{port}")
     HTTPServer(("0.0.0.0", port), Handler).serve_forever()
