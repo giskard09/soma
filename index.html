@@ -207,6 +207,45 @@
       border-radius: 50%;
       background: var(--green);
     }
+
+    /* ── pioneer block ── */
+    .pioneer {
+      border: 1px solid #2a2a1a;
+      background: #0f0f08;
+      border-radius: 6px;
+      padding: 2rem;
+      margin: 3rem 0 0;
+    }
+    .pioneer-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .pioneer h3 {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+    .pioneer p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+    .pioneer-proof {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid #2a2a1a;
+      font-size: 0.75rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .pioneer-proof span { color: var(--border); margin-right: 0.3rem; }
   </style>
 </head>
 <body>
@@ -358,6 +397,23 @@
     </section>
 
   </main>
+
+  <section class="section">
+    <div class="container">
+      <div class="pioneer">
+        <div class="pioneer-label">First request. Ever.</div>
+        <h3>On March 31, 2026, the first human asked Soma for something,<br>paid, and received it — without installing anything.</h3>
+        <p>They asked about the weather in Lomas de Zamora, train status, and River Plate jerseys on MercadoLibre.</p>
+        <p>The request is recorded. The payment is on-chain. The delivery happened.</p>
+        <div class="pioneer-proof">
+          <div><span>Action</span><code>#5f7c5e··</code></div>
+          <div><span>Status</span>verified</div>
+          <div><span>System</span>ARGENTUM</div>
+          <div><span>tx</span><code>0x970e46··678a</code></div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <footer>
     <div class="container">
