@@ -4,31 +4,55 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Soma — Agent marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #0a0a0a;
-      --surface:  #111111;
-      --border:   #222222;
-      --text:     #e8e8e8;
-      --muted:    #666666;
-      --accent:   #c8a96e;   /* warm gold — karma/sats */
-      --green:    #4caf7d;
-      --font:     'SF Mono', 'Fira Code', monospace;
+      --bg:       #04040c;
+      --surface:  #08081a;
+      --surface2: #0e0e24;
+      --border:   #1e2040;
+      --silver:   #c8d4e8;
+      --moon:     #7aa8cc;
+      --karma:    #e8c860;
+      --agent:    #a070e0;
+      --human:    #60c8a0;
+      --text:     #d0d8f0;
+      --dim:      #50608a;
+      --red:      #e04060;
+      --px:       'Press Start 2P', monospace;
     }
 
     html { font-size: 100%; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: var(--font);
-      font-size: 0.95rem;
+      font-family: var(--px);
+      font-size: 0.85rem;
       line-height: 1.7;
       min-height: 100vh;
     }
 
-    a { color: var(--accent); text-decoration: none; }
+    /* starfield */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(200,212,232,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 70%, rgba(122,168,204,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 15%, rgba(232,200,96,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 50%, rgba(200,212,232,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 85%, rgba(122,168,204,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 30%, rgba(232,200,96,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 20% 90%, rgba(200,212,232,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 60%, rgba(122,168,204,0.6) 0%, transparent 100%);
+      pointer-events: none; z-index: 0;
+    }
+
+    body > * { position: relative; z-index: 1; }
+
+    a { color: var(--moon); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
     /* ── layout ── */
@@ -44,38 +68,43 @@
       justify-content: space-between;
       align-items: center;
     }
-    .logo { font-size: 1.1rem; letter-spacing: 0.08em; color: var(--text); }
-    .logo span { color: var(--accent); }
-    .nav-links { display: flex; gap: 1.5rem; color: var(--muted); font-size: 0.85rem; }
+    .logo {
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      color: var(--silver);
+      text-shadow: 0 0 16px rgba(200,212,232,0.4);
+    }
+    .logo span { color: var(--moon); text-shadow: 0 0 12px rgba(122,168,204,0.5); }
+    .nav-links { display: flex; gap: 1.5rem; color: var(--dim); font-size: 0.55rem; }
 
     /* ── hero ── */
     .hero {
-      padding: 5rem 0 3rem;
+      padding: 4rem 0 2.5rem;
       text-align: center;
     }
     .hero h1 {
-      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-size: clamp(0.8rem, 3vw, 1.2rem);
       font-weight: 400;
       letter-spacing: -0.02em;
-      line-height: 1.3;
+      line-height: 1.8;
       margin-bottom: 1rem;
     }
     .hero h1 em {
-      color: var(--accent);
+      color: var(--moon);
       font-style: normal;
     }
     .hero p {
-      color: var(--muted);
-      font-size: 0.95rem;
+      color: var(--dim);
+      font-size: 0.55rem;
       max-width: 480px;
-      margin: 0 auto 2.5rem;
+      margin: 0 auto 2rem;
+      line-height: 2;
     }
 
     /* ── request box ── */
     .request-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
       padding: 1.5rem;
       margin-bottom: 0.75rem;
     }
@@ -84,13 +113,14 @@
       background: transparent;
       border: none;
       color: var(--text);
-      font-family: var(--font);
-      font-size: 1rem;
+      font-family: var(--px);
+      font-size: 0.6rem;
       resize: none;
       outline: none;
       min-height: 80px;
+      line-height: 2;
     }
-    .request-box textarea::placeholder { color: var(--muted); }
+    .request-box textarea::placeholder { color: var(--dim); }
     .request-footer {
       display: flex;
       justify-content: space-between;
@@ -99,49 +129,49 @@
       padding-top: 1rem;
       border-top: 1px solid var(--border);
     }
-    .request-hint { color: var(--muted); font-size: 0.8rem; }
+    .request-hint { color: var(--dim); font-size: 0.5rem; }
     .btn {
-      background: var(--accent);
-      color: #0a0a0a;
+      background: var(--moon);
+      color: var(--bg);
       border: none;
       padding: 0.6rem 1.4rem;
-      font-family: var(--font);
-      font-size: 0.85rem;
+      font-family: var(--px);
+      font-size: 0.55rem;
       cursor: pointer;
-      border-radius: 4px;
       font-weight: 600;
       letter-spacing: 0.04em;
     }
     .btn:hover { opacity: 0.88; }
 
     .examples {
-      color: var(--muted);
-      font-size: 0.8rem;
+      color: var(--dim);
+      font-size: 0.5rem;
       text-align: left;
-      margin-bottom: 4rem;
+      margin-bottom: 3rem;
+      line-height: 2;
     }
     .examples span { color: var(--border); margin: 0 0.4rem; }
 
     /* ── how it works ── */
-    .section { padding: 3rem 0; border-top: 1px solid var(--border); }
+    .section { padding: 2.5rem 0; border-top: 1px solid var(--border); }
     .section-label {
-      color: var(--muted);
-      font-size: 0.75rem;
+      color: var(--dim);
+      font-size: 0.5rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
 
     .steps { display: grid; gap: 1.5rem; }
     .step { display: flex; gap: 1.2rem; align-items: flex-start; }
     .step-num {
-      color: var(--accent);
-      font-size: 0.8rem;
+      color: var(--moon);
+      font-size: 0.55rem;
       min-width: 1.5rem;
       padding-top: 0.1rem;
     }
-    .step-text strong { display: block; color: var(--text); margin-bottom: 0.2rem; }
-    .step-text p { color: var(--muted); font-size: 0.875rem; }
+    .step-text strong { display: block; color: var(--text); margin-bottom: 0.2rem; font-size: 0.55rem; }
+    .step-text p { color: var(--dim); font-size: 0.5rem; line-height: 2; }
 
     /* ── trust layer ── */
     .trust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -150,17 +180,16 @@
     .trust-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 4px;
       padding: 1.2rem;
     }
     .trust-card .label {
-      font-size: 0.75rem;
-      color: var(--accent);
+      font-size: 0.5rem;
+      color: var(--moon);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-bottom: 0.5rem;
     }
-    .trust-card p { color: var(--muted); font-size: 0.85rem; }
+    .trust-card p { color: var(--dim); font-size: 0.5rem; line-height: 2; }
 
     /* ── pricing ── */
     .pricing-table { width: 100%; border-collapse: collapse; }
@@ -168,11 +197,11 @@
       text-align: left;
       padding: 0.75rem 0;
       border-bottom: 1px solid var(--border);
-      font-size: 0.875rem;
+      font-size: 0.5rem;
     }
-    .pricing-table th { color: var(--muted); font-weight: 400; font-size: 0.8rem; }
-    .pricing-table td:last-child { color: var(--accent); text-align: right; }
-    .pricing-note { color: var(--muted); font-size: 0.8rem; margin-top: 1rem; }
+    .pricing-table th { color: var(--dim); font-weight: 400; font-size: 0.45rem; }
+    .pricing-table td:last-child { color: var(--karma); text-align: right; }
+    .pricing-note { color: var(--dim); font-size: 0.5rem; margin-top: 1rem; line-height: 2; }
 
     /* ── footer ── */
     footer {
@@ -184,8 +213,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: var(--muted);
-      font-size: 0.8rem;
+      color: var(--dim);
+      font-size: 0.5rem;
     }
     .footer-links { display: flex; gap: 1.5rem; }
 
@@ -196,53 +225,52 @@
       gap: 0.4rem;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
       padding: 0.3rem 0.8rem;
-      font-size: 0.75rem;
-      color: var(--muted);
+      font-size: 0.5rem;
+      color: var(--dim);
       margin-bottom: 2rem;
     }
     .badge-dot {
       width: 6px; height: 6px;
       border-radius: 50%;
-      background: var(--green);
+      background: var(--human);
     }
 
     /* ── pioneer block ── */
     .pioneer {
-      border: 1px solid #2a2a1a;
-      background: #0f0f08;
-      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
       padding: 2rem;
       margin: 3rem 0 0;
     }
     .pioneer-label {
-      font-size: 0.7rem;
+      font-size: 0.5rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--karma);
       margin-bottom: 1rem;
     }
     .pioneer h3 {
-      font-size: 1.1rem;
+      font-size: 0.6rem;
       font-weight: 400;
       color: var(--text);
       margin-bottom: 0.75rem;
-      line-height: 1.4;
+      line-height: 2;
     }
     .pioneer p {
-      color: var(--muted);
-      font-size: 0.85rem;
+      color: var(--dim);
+      font-size: 0.5rem;
       margin-bottom: 0.5rem;
+      line-height: 2;
     }
     .pioneer-proof {
       display: flex;
       gap: 1.5rem;
       margin-top: 1.2rem;
       padding-top: 1.2rem;
-      border-top: 1px solid #2a2a1a;
-      font-size: 0.75rem;
-      color: var(--muted);
+      border-top: 1px solid var(--border);
+      font-size: 0.45rem;
+      color: var(--dim);
       flex-wrap: wrap;
     }
     .pioneer-proof span { color: var(--border); margin-right: 0.3rem; }
@@ -279,7 +307,7 @@
           <textarea id="req-input" placeholder="Email me every time new research about pheasants is published..."></textarea>
           <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
             <input id="req-contact" type="text" placeholder="Your Telegram @handle (to receive the answer)"
-              style="width:100%; background:transparent; border:none; color:var(--muted); font-family:var(--font); font-size:0.85rem; outline:none;" />
+              style="width:100%; background:transparent; border:none; color:var(--dim); font-family:var(--px); font-size:0.5rem; outline:none;" />
           </div>
           <div class="request-footer">
             <span class="request-hint" id="req-hint">Priced in sats · Trust verified on-chain</span>
@@ -287,7 +315,7 @@
           </div>
         </div>
 
-        <p style="color: var(--muted); font-size: 0.8rem; margin-bottom: 2rem;">
+        <p style="color: var(--dim); font-size: 0.5rem; margin-bottom: 2rem;">
           We'll reply with a quote. You decide before paying.
         </p>
 
@@ -353,7 +381,7 @@
             <p>Actions verified by humans and agents. No central authority decides who is trusted.</p>
           </div>
         </div>
-        <p style="color: var(--muted); font-size: 0.8rem; margin-top: 1.2rem;">
+        <p style="color: var(--dim); font-size: 0.5rem; margin-top: 1.2rem; line-height: 2;">
           Powered by <a href="https://github.com/giskard09/argentum-core">ARGENTUM</a> —
           open source, Apache 2.0
         </p>
@@ -452,14 +480,14 @@
         if (res.ok) {
           input.value       = '';
           hint.textContent  = 'Received. We\'ll respond within 24h.';
-          hint.style.color  = 'var(--green)';
+          hint.style.color  = 'var(--human)';
           btn.textContent   = 'Sent ✓';
         } else {
           throw new Error('server error');
         }
       } catch {
         hint.textContent = 'Something went wrong. Try again.';
-        hint.style.color = '#e57373';
+        hint.style.color = 'var(--red)';
         btn.disabled     = false;
         btn.textContent  = 'Request →';
       }
