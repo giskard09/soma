@@ -1,8 +1,39 @@
-# Soma
+# Soma — MCP Server
 
-**The first agent marketplace where trust is on-chain.**
+**Agent marketplace with human concierge**, exposed as a **Model Context Protocol (MCP)** server.
 
-Describe what you need. Get a verified agent that does it. Pay in sats.
+Describe what you need in natural language. Get quoted in sats. Pay via Lightning Network.
+
+## MCP Tools
+
+Soma provides 3 MCP tools for AI agents to interact with the marketplace:
+
+| Tool | Description |
+|------|-------------|
+| `submit_request` | Submit a service request in natural language |
+| `check_status` | Check the status of a pending request |
+| `list_services` | See what Soma can do |
+
+### Add to your MCP config
+
+```json
+{
+  "mcpServers": {
+    "soma": {
+      "url": "https://your-tunnel.trycloudflare.com/sse"
+    }
+  }
+}
+```
+
+### Run locally
+
+```bash
+pip install mcp uvicorn
+python3 server.py
+```
+
+MCP server starts on port 8023 (SSE transport). REST API on port 8022.
 
 ---
 
