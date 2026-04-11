@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 requests.json
 soma_policy_log.jsonl
+payment_log.jsonl

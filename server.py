@@ -10,6 +10,7 @@ from urllib.parse import urlparse, parse_qs
 
 import policy
 import profiles
+import listener
 
 BOT_TOKEN       = os.getenv("BOT_TOKEN")
 CHAT_ID         = os.getenv("CHAT_ID")
@@ -132,14 +133,41 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/status":
             self._json(200, {
                 "service": "soma-concierge",
-                "version": "0.2.0",
+                "version": "0.3.0",
                 "port": 8022,
                 "uptime_seconds": int(time.time() - _start_time),
                 "healthy": True,
                 "policy_version": policy.POLICY_VERSION,
                 "profiles": len(profiles.list_all()),
+                "listener": {
+                    "poll_interval": listener.POLL_INTERVAL,
+                    "audit_log": str(listener.AUDIT_LOG.name),
+                },
                 "dependencies": ["phoenixd", "argentum-core", "groq"],
             })
+            return
+
+        if path.startswith("/payment/status/"):
+            req_id = path.split("/payment/status/", 1)[1]
+            reqs = load_requests()
+            if req_id not in reqs:
+                self._json(404, {"error": "request not found"})
+                return
+            req = reqs[req_id]
+            ph = req.get("payment_hash")
+            live = listener._check_phoenixd(ph) if ph else None
+            self._json(200, {
+                "req_id": req_id,
+                "status": req.get("status"),
+                "sats": req.get("sats"),
+                "received_sats": req.get("received_sats"),
+                "phoenixd_live": bool(live and live.get("isPaid")),
+            })
+            return
+
+        if path == "/payment/poll":
+            changed = listener.poll_once()
+            self._json(200, {"ok": True, "transitions": changed})
             return
 
         self._json(404, {"error": "not found"})
@@ -412,6 +440,8 @@ if __name__ == "__main__":
         HTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
     threading.Thread(target=run_rest, daemon=True).start()
+
+    listener.start()
 
     transport = os.getenv("MCP_TRANSPORT", "stdio")
     mcp.run(transport=transport)
