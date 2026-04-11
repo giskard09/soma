@@ -1,0 +1,5 @@
+.env
+__pycache__/
+*.pyc
+requests.json
+soma_policy_log.jsonl
