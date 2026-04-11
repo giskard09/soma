@@ -20,7 +20,7 @@ except ImportError:
 PHOENIXD_URL  = "http://127.0.0.1:9740"
 PHOENIXD_PASS = os.getenv("PHOENIXD_PASSWORD", "")
 
-POLL_INTERVAL = int(os.getenv("SOMA_POLL_INTERVAL", "15"))
+POLL_INTERVAL = int(os.getenv("SOMA_POLL_INTERVAL", "10"))
 REQUESTS_FILE = Path(__file__).parent / "requests.json"
 AUDIT_LOG     = Path(__file__).parent / "payment_log.jsonl"
 
@@ -79,11 +79,32 @@ def _notify_creator(msg: str):
 def _process_request(req_id: str, req: dict) -> bool:
     """Check one request against phoenixd. Returns True if state changed."""
     ph = req.get("payment_hash")
-    if not ph or req.get("status") == "paid":
+    if not ph or req.get("status") in ("paid", "expired"):
         return False
 
     data = _check_phoenixd(ph)
-    if not data or not data.get("isPaid"):
+    if not data:
+        return False
+
+    if not data.get("isPaid"):
+        if data.get("isExpired"):
+            req["status"] = "expired"
+            req["expired_at"] = int(time.time())
+            _audit({
+                "ts": int(time.time()),
+                "event": "payment_expired",
+                "req_id": req_id,
+                "payment_hash_short": _hash_short(ph),
+                "expected_sats": req.get("sats", 0),
+                "category": req.get("category"),
+            })
+            _notify_creator(
+                f"*SOMA — ⏰ EXPIRED* `{req_id}`\n\n"
+                f"Invoice expiro sin pago.\n"
+                f"Expected: {req.get('sats', 0)} sats\n"
+                f"Category: {req.get('category', '-')}"
+            )
+            return True
         return False
 
     received_sat = data.get("receivedSat", 0)

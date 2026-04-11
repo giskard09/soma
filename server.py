@@ -170,6 +170,51 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "transitions": changed})
             return
 
+        if path == "/dashboard" or path == "/dashboard.html":
+            dash = Path(__file__).parent / "dashboard.html"
+            if dash.exists():
+                self.send_response(200)
+                self._cors()
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(dash.read_bytes())
+            else:
+                self._json(404, {"error": "dashboard not found"})
+            return
+
+        if path == "/soma/stats":
+            reqs = load_requests()
+            counts = {}
+            total_paid_sats = 0
+            for r in reqs.values():
+                s = r.get("status", "unknown")
+                counts[s] = counts.get(s, 0) + 1
+                if s == "paid":
+                    total_paid_sats += r.get("received_sats", 0)
+            self._json(200, {
+                "requests_by_status": counts,
+                "total_requests": len(reqs),
+                "total_paid_sats": total_paid_sats,
+                "profiles": len(profiles.list_all()),
+                "uptime_seconds": int(time.time() - _start_time),
+                "policy_version": policy.POLICY_VERSION,
+            })
+            return
+
+        if path == "/soma/audit":
+            limit = int(qs.get("limit", ["20"])[0])
+            log_path = listener.AUDIT_LOG
+            events = []
+            if log_path.exists():
+                lines = log_path.read_text().strip().split("\n")
+                for line in lines[-limit:]:
+                    try:
+                        events.append(json.loads(line))
+                    except Exception:
+                        continue
+            self._json(200, {"events": events, "count": len(events)})
+            return
+
         self._json(404, {"error": "not found"})
 
     # ── POST ───────────────────────────────────────────────────────────

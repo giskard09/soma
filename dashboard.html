@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soma — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #04040c;
+      --surface:  #08081a;
+      --surface2: #0e0e24;
+      --border:   #1e2040;
+      --silver:   #c8d4e8;
+      --moon:     #7aa8cc;
+      --karma:    #e8c860;
+      --agent:    #a070e0;
+      --human:    #60c8a0;
+      --text:     #d0d8f0;
+      --dim:      #50608a;
+      --red:      #e04060;
+      --green:    #60c8a0;
+      --amber:    #e8c860;
+      --px:       'Press Start 2P', monospace;
+    }
+    html { font-size: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--px);
+      font-size: 11px;
+      line-height: 1.8;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    h1 {
+      color: var(--moon);
+      font-size: 16px;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    .sub { color: var(--dim); font-size: 9px; margin-bottom: 32px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      color: var(--silver);
+      font-size: 11px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+    }
+    .stat {
+      background: var(--surface2);
+      padding: 16px;
+      border-left: 3px solid var(--moon);
+    }
+    .stat .label { color: var(--dim); font-size: 8px; margin-bottom: 8px; }
+    .stat .value { color: var(--silver); font-size: 16px; }
+    .stat.paid    { border-left-color: var(--green); }
+    .stat.quoted  { border-left-color: var(--amber); }
+    .stat.expired { border-left-color: var(--red); }
+    .stat.review  { border-left-color: var(--agent); }
+    .stat .value.green  { color: var(--green); }
+    .stat .value.amber  { color: var(--amber); }
+    .stat .value.red    { color: var(--red); }
+    .stat .value.agent  { color: var(--agent); }
+    .stat .value.karma  { color: var(--karma); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--dim); font-weight: normal; }
+    td { color: var(--text); }
+    td.hash { color: var(--moon); font-size: 8px; }
+    td.event-paid    { color: var(--green); }
+    td.event-expired { color: var(--red); }
+    td.event-error   { color: var(--amber); }
+    td.event-other   { color: var(--silver); }
+    .footer {
+      text-align: center;
+      color: var(--dim);
+      font-size: 8px;
+      margin-top: 32px;
+    }
+    .refresh {
+      float: right;
+      color: var(--dim);
+      font-size: 8px;
+    }
+    a { color: var(--moon); text-decoration: none; }
+    a:hover { color: var(--silver); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>SOMA DASHBOARD</h1>
+    <div class="sub">agent marketplace · live status · auto-refresh 10s</div>
+
+    <div class="card">
+      <h2>STATS <span class="refresh" id="refresh">—</span></h2>
+      <div class="grid" id="stats">
+        <div class="stat"><div class="label">loading...</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>REQUESTS BY STATUS</h2>
+      <div class="grid" id="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>RECENT PAYMENT EVENTS (anonymized)</h2>
+      <table id="audit">
+        <thead>
+          <tr>
+            <th>time</th>
+            <th>event</th>
+            <th>req</th>
+            <th>hash</th>
+            <th>sats</th>
+            <th>category</th>
+          </tr>
+        </thead>
+        <tbody id="audit-body"></tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      soma · <a href="/">landing</a> · <a href="https://github.com/giskard09/soma">github</a>
+    </div>
+  </div>
+
+  <script>
+    const API = location.origin.includes('localhost') || location.origin.includes('127.0.0.1')
+      ? ''
+      : 'https://soma.rgiskard.xyz';
+
+    function fmt(ts) {
+      const d = new Date(ts * 1000);
+      return d.toLocaleTimeString();
+    }
+    function fmtUptime(s) {
+      if (s < 60) return s + 's';
+      if (s < 3600) return Math.floor(s/60) + 'm';
+      if (s < 86400) return Math.floor(s/3600) + 'h';
+      return Math.floor(s/86400) + 'd';
+    }
+
+    async function refresh() {
+      try {
+        const [stats, audit] = await Promise.all([
+          fetch(API + '/soma/stats').then(r => r.json()),
+          fetch(API + '/soma/audit?limit=15').then(r => r.json()),
+        ]);
+
+        const statGrid = document.getElementById('stats');
+        statGrid.innerHTML = `
+          <div class="stat"><div class="label">profiles</div><div class="value agent">${stats.profiles}</div></div>
+          <div class="stat"><div class="label">total requests</div><div class="value">${stats.total_requests}</div></div>
+          <div class="stat"><div class="label">total paid sats</div><div class="value karma">${stats.total_paid_sats}</div></div>
+          <div class="stat"><div class="label">uptime</div><div class="value">${fmtUptime(stats.uptime_seconds)}</div></div>
+          <div class="stat"><div class="label">policy</div><div class="value">v${stats.policy_version}</div></div>
+        `;
+
+        const statusGrid = document.getElementById('status');
+        const counts = stats.requests_by_status || {};
+        const order = ['pending', 'review', 'quoted', 'paid', 'expired'];
+        const colors = { paid: 'green', quoted: 'amber', expired: 'red', review: 'agent', pending: '' };
+        let html = '';
+        order.forEach(s => {
+          const n = counts[s] || 0;
+          html += `<div class="stat ${s}"><div class="label">${s}</div><div class="value ${colors[s]}">${n}</div></div>`;
+        });
+        statusGrid.innerHTML = html;
+
+        const tbody = document.getElementById('audit-body');
+        const events = (audit.events || []).reverse();
+        if (events.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="color:var(--dim)">no events yet</td></tr>';
+        } else {
+          tbody.innerHTML = events.map(e => {
+            const cls = e.event === 'payment_confirmed' ? 'event-paid'
+                      : e.event === 'payment_expired' ? 'event-expired'
+                      : e.event === 'poll_error' ? 'event-error' : 'event-other';
+            const sats = e.received_sats != null ? e.received_sats : (e.expected_sats || '-');
+            return `<tr>
+              <td>${fmt(e.ts)}</td>
+              <td class="${cls}">${e.event}</td>
+              <td>${e.req_id || '-'}</td>
+              <td class="hash">${e.payment_hash_short || '-'}</td>
+              <td>${sats}</td>
+              <td>${e.category || '-'}</td>
+            </tr>`;
+          }).join('');
+        }
+
+        document.getElementById('refresh').textContent = 'updated ' + new Date().toLocaleTimeString();
+      } catch (err) {
+        document.getElementById('refresh').textContent = 'error: ' + err.message;
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>
