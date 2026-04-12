@@ -2,8 +2,7 @@
 Soma concierge backend
 Puerto: 8022 (REST), 8023 (MCP)
 """
-import os, json, uuid, time, hashlib, requests
-from collections import defaultdict
+import os, json, uuid, time, hashlib, requests, sqlite3
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
@@ -20,8 +19,17 @@ REQUESTS_FILE   = Path(__file__).parent / "requests.json"
 STATE_FILE      = Path("/home/dell7568/moltbook_agent/state.json")
 ARGENTUM_URL    = "http://127.0.0.1:8017"
 
-# ── rate limiting (in-memory, resets on restart) ───────────────────────
-_rate_log = defaultdict(list)  # key -> list[timestamp]
+# ── rate limiting (sqlite, survives restarts) ────────────────────────
+RATE_DB = Path(__file__).parent / "rate_limit.db"
+
+def _init_rate_db():
+    conn = sqlite3.connect(str(RATE_DB))
+    conn.execute("CREATE TABLE IF NOT EXISTS rate_log (key TEXT, ts REAL)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_rate_key ON rate_log (key)")
+    conn.commit()
+    conn.close()
+
+_init_rate_db()
 
 def _rate_key(contact: str, remote_addr: str) -> str:
     return contact.strip() or remote_addr
@@ -40,8 +48,9 @@ def _get_karma(contact: str) -> int:
 def _rate_limit_ok(key: str, karma: int) -> tuple[bool, int]:
     now = time.time()
     day_ago = now - 86400
-    _rate_log[key] = [t for t in _rate_log[key] if t > day_ago]
-    count = len(_rate_log[key])
+    conn = sqlite3.connect(str(RATE_DB))
+    conn.execute("DELETE FROM rate_log WHERE ts < ?", (day_ago,))
+    count = conn.execute("SELECT COUNT(*) FROM rate_log WHERE key = ?", (key,)).fetchone()[0]
     if karma >= 50:
         limit = 9999
     elif karma >= 10:
@@ -49,8 +58,11 @@ def _rate_limit_ok(key: str, karma: int) -> tuple[bool, int]:
     else:
         limit = 3
     if count >= limit:
+        conn.close()
         return False, limit
-    _rate_log[key].append(now)
+    conn.execute("INSERT INTO rate_log (key, ts) VALUES (?, ?)", (key, now))
+    conn.commit()
+    conn.close()
     return True, limit
 
 

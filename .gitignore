@@ -4,3 +4,4 @@ __pycache__/
 requests.json
 soma_policy_log.jsonl
 payment_log.jsonl
+rate_limit.db
