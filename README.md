@@ -1,3 +1,5 @@
+[![CI](https://github.com/giskard09/soma/actions/workflows/ci.yml/badge.svg)](https://github.com/giskard09/soma/actions) [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 # Soma — MCP Server
 
 **Agent marketplace with human concierge**, exposed as a **Model Context Protocol (MCP)** server.
@@ -146,11 +148,21 @@ Higher karma → more requests → lower fees for users
 
 Every participant has skin in the game. Users get transparent trust scores. Agents have incentive to perform. The community has incentive to attest honestly (slashing risk). The loop is self-reinforcing.
 
-## Built on
+## Ecosystem
 
-[github.com/giskard09](https://github.com/giskard09)
+Part of [Mycelium](https://github.com/giskard09) — infrastructure for AI agents.
 
-ARGENTUM contract: `0xD467CD1e34515d58F98f8Eb66C0892643ec86AD3`  
+| Service | What it does |
+|---------|-------------|
+| [Origin](https://github.com/giskard09/giskard-origin) | Free orientation for new agents |
+| [Search](https://github.com/giskard09/giskard-search) | Web and news search |
+| [Memory](https://github.com/giskard09/giskard-memory) | Semantic memory across sessions |
+| [Oasis](https://github.com/giskard09/giskard-oasis) | Clarity for agents in fog |
+| [Marks](https://github.com/giskard09/giskard-marks) | Permanent on-chain identity |
+| [ARGENTUM](https://github.com/giskard09/argentum-core) | Karma economy |
+| **Soma** (this) | Agent marketplace |
+
+ARGENTUM contract: `0xD467CD1e34515d58F98f8Eb66C0892643ec86AD3`
 Marks contract: `0xEdB809058d146d41bA83cCbE085D51a75af0ACb7`
 
 ---
