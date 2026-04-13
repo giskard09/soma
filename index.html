@@ -493,16 +493,23 @@
           body: JSON.stringify({ request: text, contact: document.getElementById('req-contact').value.trim() }),
         });
 
+        const data = await res.json().catch(() => ({}));
         if (res.ok) {
           input.value       = '';
           hint.textContent  = 'Received. We\'ll respond within 24h.';
           hint.style.color  = 'var(--human)';
           btn.textContent   = 'Sent ✓';
+        } else if (res.status === 429) {
+          hint.textContent  = `Daily limit reached (${data.daily_limit || 3} requests). Try again tomorrow.`;
+          hint.style.color  = 'var(--karma)';
+        } else if (res.status === 403) {
+          hint.textContent  = data.reason || 'Request rejected by policy.';
+          hint.style.color  = 'var(--red)';
         } else {
-          throw new Error('server error');
+          throw new Error(data.error || 'server error');
         }
-      } catch {
-        hint.textContent = 'Something went wrong. Try again.';
+      } catch (e) {
+        hint.textContent = e.message || 'Something went wrong. Try again.';
         hint.style.color = 'var(--red)';
         btn.disabled     = false;
         btn.textContent  = 'Request →';

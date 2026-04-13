@@ -18,6 +18,7 @@ PHOENIXD_PASS   = os.getenv("PHOENIXD_PASSWORD", "")
 REQUESTS_FILE   = Path(__file__).parent / "requests.json"
 STATE_FILE      = Path("/home/dell7568/moltbook_agent/state.json")
 ARGENTUM_URL    = "http://127.0.0.1:8017"
+EXEMPT_CONTACTS = {"@petchevere", "petchevere"}
 
 # ── rate limiting (sqlite, survives restarts) ────────────────────────
 RATE_DB = Path(__file__).parent / "rate_limit.db"
@@ -46,6 +47,8 @@ def _get_karma(contact: str) -> int:
     return 0
 
 def _rate_limit_ok(key: str, karma: int) -> tuple[bool, int]:
+    if key in EXEMPT_CONTACTS:
+        return True, 9999
     now = time.time()
     day_ago = now - 86400
     conn = sqlite3.connect(str(RATE_DB))
