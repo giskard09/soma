@@ -245,7 +245,8 @@ class Handler(BaseHTTPRequestHandler):
         # ── POST /soma/check_policy (internal) ─────────────────────────
         if self.path == "/soma/check_policy":
             text = data.get("request", "").strip()
-            result = policy.check_policy(text)
+            contact = data.get("contact", "").strip() or None
+            result = policy.check_policy(text, contact=contact)
             self._json(200, result)
             return
 
@@ -264,7 +265,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/soma/match":
             text = data.get("request", "").strip()
             max_price = data.get("max_price_sats")
-            pol = policy.check_policy(text)
+            contact = data.get("contact", "").strip() or None
+            pol = policy.check_policy(text, contact=contact)
             if pol["decision"] == "reject":
                 self._json(403, {"policy": pol, "matches": []})
                 return
@@ -296,10 +298,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             # policy
-            pol = policy.check_policy(text)
+            pol = policy.check_policy(text, contact=contact or None)
             if pol["decision"] == "reject":
                 self._json(403, {"error": "rejected by policy",
                                  "reason": pol.get("reason"),
+                                 "user_message": pol.get("user_message"),
+                                 "category": pol.get("category"),
                                  "policy_version": pol.get("policy_version")})
                 return
 
@@ -384,9 +388,10 @@ def submit_request(request_text: str, contact: str = "") -> str:
     contact: your Telegram handle or email (optional, for delivery)"""
     if not request_text.strip():
         return "Request cannot be empty."
-    pol = policy.check_policy(request_text)
+    pol = policy.check_policy(request_text, contact=contact.strip() or None)
     if pol["decision"] == "reject":
-        return f"Request rejected by policy: {pol.get('reason')}"
+        msg = pol.get("user_message") or pol.get("reason")
+        return f"Request rejected by policy: {msg}"
 
     req_id = str(uuid.uuid4())[:8]
     reqs = load_requests()
