@@ -18,7 +18,42 @@ PHOENIXD_PASS   = os.getenv("PHOENIXD_PASSWORD", "")
 REQUESTS_FILE   = Path(__file__).parent / "requests.json"
 STATE_FILE      = Path("/home/dell7568/moltbook_agent/state.json")
 ARGENTUM_URL    = "http://127.0.0.1:8017"
+MARKS_URL       = os.getenv("MARKS_URL", "http://127.0.0.1:8015")
 EXEMPT_CONTACTS = {"@petchevere", "petchevere"}
+
+UNVERIFIED_PROFILE_DAILY_CAP = 5
+
+
+def _resolve_pub_key(agent_id: str):
+    """Look up the Ed25519 pub_key registered for agent_id in Marks. None if missing."""
+    if not agent_id:
+        return None
+    try:
+        r = requests.get(f"{MARKS_URL}/pubkey/{agent_id}", timeout=2)
+        if r.status_code == 200:
+            return r.json().get("pub_key")
+    except Exception:
+        pass
+    return None
+
+
+def _unverified_profile_rate_ok(agent_id: str) -> tuple[bool, int]:
+    """Cap unsigned profile writes per agent_id per day."""
+    if not agent_id:
+        return False, 0
+    key = f"profile_unverified:{agent_id}"
+    now = time.time()
+    day_ago = now - 86400
+    conn = sqlite3.connect(str(RATE_DB))
+    conn.execute("DELETE FROM rate_log WHERE ts < ?", (day_ago,))
+    count = conn.execute("SELECT COUNT(*) FROM rate_log WHERE key = ?", (key,)).fetchone()[0]
+    if count >= UNVERIFIED_PROFILE_DAILY_CAP:
+        conn.close()
+        return False, UNVERIFIED_PROFILE_DAILY_CAP
+    conn.execute("INSERT INTO rate_log (key, ts) VALUES (?, ?)", (key, now))
+    conn.commit()
+    conn.close()
+    return True, UNVERIFIED_PROFILE_DAILY_CAP
 
 # ── rate limiting (sqlite, survives restarts) ────────────────────────
 RATE_DB = Path(__file__).parent / "rate_limit.db"
@@ -145,6 +180,11 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, p)
             return
 
+        if path.startswith("/soma/profile/") and path.endswith("/verify_status"):
+            agent_id = path[len("/soma/profile/"):-len("/verify_status")]
+            self._json(200, profiles.verify_status(agent_id))
+            return
+
         if path == "/status":
             self._json(200, {
                 "service": "soma-concierge",
@@ -252,13 +292,44 @@ class Handler(BaseHTTPRequestHandler):
 
         # ── POST /soma/profile ─────────────────────────────────────────
         if self.path == "/soma/profile":
+            agent_id = (data.get("agent_id") or "").strip()
+            if not agent_id:
+                self._json(400, {"error": "agent_id required"})
+                return
+
+            signature    = data.pop("signature", None)
+            signature_ts = data.pop("signature_ts", None)
+            nonce        = data.pop("nonce", None)
+            signed       = bool(signature and signature_ts and nonce)
+
+            if not signed:
+                ok, cap = _unverified_profile_rate_ok(agent_id)
+                if not ok:
+                    self._json(429, {"error": "unverified profile rate limit exceeded",
+                                     "daily_limit": cap,
+                                     "hint": "sign the profile with the agent's Ed25519 key to bypass this cap"})
+                    return
+
             try:
-                path = profiles.save(data)
-                h = hashlib.sha256(path.read_bytes()).hexdigest()[:16]
-                self._json(200, {"ok": True, "agent_id": data["agent_id"],
-                                 "profile_hash": h})
+                path = profiles.save(
+                    data,
+                    signature=signature,
+                    signature_ts=signature_ts,
+                    nonce=nonce,
+                    pub_key_resolver=_resolve_pub_key,
+                )
+            except PermissionError as e:
+                self._json(401, {"error": str(e)})
+                return
             except ValueError as e:
                 self._json(400, {"error": str(e)})
+                return
+
+            stored   = profiles.load(agent_id) or {}
+            verified = bool(stored.get("verified"))
+            h = hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+            self._json(200, {"ok": True, "agent_id": agent_id,
+                             "profile_hash": h, "verified": verified})
             return
 
         # ── POST /soma/match ───────────────────────────────────────────
