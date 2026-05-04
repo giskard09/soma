@@ -10,6 +10,7 @@ from urllib.parse import urlparse, parse_qs
 import policy
 import profiles
 import listener
+import mycelium_trails
 
 BOT_TOKEN       = os.getenv("BOT_TOKEN")
 CHAT_ID         = os.getenv("CHAT_ID")
@@ -18,6 +19,9 @@ PHOENIXD_PASS   = os.getenv("PHOENIXD_PASSWORD", "")
 REQUESTS_FILE   = Path(__file__).parent / "requests.json"
 STATE_FILE      = Path("/home/dell7568/moltbook_agent/state.json")
 ARGENTUM_URL    = "http://127.0.0.1:8017"
+TRAILS_DB       = str(Path(__file__).parent / "trails.db")
+SERVICE_NAME    = "soma"
+mycelium_trails.init_db(TRAILS_DB)
 MARKS_URL       = os.getenv("MARKS_URL", "http://127.0.0.1:8015")
 EXEMPT_CONTACTS = {"@petchevere", "petchevere"}
 
@@ -391,6 +395,19 @@ class Handler(BaseHTTPRequestHandler):
             }
             save_requests(reqs)
 
+            try:
+                mycelium_trails.record_trail(
+                    TRAILS_DB,
+                    agent_id=contact or "anonymous",
+                    service=SERVICE_NAME,
+                    operation="submit_request",
+                    nonce=req_id,
+                    karma_at_time=karma if contact else None,
+                    success=True,
+                )
+            except Exception:
+                pass
+
             marker = "⚠️ ESCALATED" if status == "review" else "new request"
             msg = f"*SOMA — {marker}* `{req_id}`\n\nCategory: {pol.get('category')}\n\n{text}"
             if contact:
@@ -482,6 +499,19 @@ def submit_request(request_text: str, contact: str = "") -> str:
     if contact:
         msg += f"\n\nContacto: `{contact}`"
     notify_telegram(msg)
+
+    try:
+        mycelium_trails.record_trail(
+            TRAILS_DB,
+            agent_id=contact.strip() or "anonymous",
+            service=SERVICE_NAME,
+            operation="submit_request",
+            nonce=req_id,
+            karma_at_time=None,
+            success=True,
+        )
+    except Exception:
+        pass
 
     return f"Request {req_id} submitted. Status: {status}. Category: {pol.get('category')}."
 
