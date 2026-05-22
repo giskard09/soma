@@ -27,6 +27,11 @@ EXEMPT_CONTACTS = {"@petchevere", "petchevere"}
 
 UNVERIFIED_PROFILE_DAILY_CAP = 5
 
+# Karma gate — publicado en docs/soma-karma-gate.md
+# Un agente sin contact o con karma 0 puede buscar perfiles, pero no puede
+# enviar una solicitud. Primer servicio Mycelium con requisito explícito.
+SOMA_MINIMUM_KARMA_TO_REQUEST = 1
+
 
 def _resolve_pub_key(agent_id: str):
     """Look up the Ed25519 pub_key registered for agent_id in Marks. None if missing."""
@@ -363,9 +368,20 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(400, {"error": "empty request"})
                 return
 
+            # karma gate — mínimo para enviar solicitud
+            karma = _get_karma(contact)
+            if contact not in EXEMPT_CONTACTS and karma < SOMA_MINIMUM_KARMA_TO_REQUEST:
+                self._json(403, {
+                    "error": "karma_required",
+                    "minimum_karma": SOMA_MINIMUM_KARMA_TO_REQUEST,
+                    "your_karma": karma,
+                    "how_to_earn": "https://argentum.rgiskard.xyz/action_types",
+                    "verify_karma": f"https://argentum-api.rgiskard.xyz/karma/{contact or 'YOUR_AGENT_ID'}",
+                })
+                return
+
             # rate limit
             key = _rate_key(contact, self.client_address[0])
-            karma = _get_karma(contact)
             ok, limit = _rate_limit_ok(key, karma)
             if not ok:
                 self._json(429, {"error": "rate limit exceeded",
