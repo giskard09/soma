@@ -234,6 +234,18 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "transitions": changed})
             return
 
+        if path == "/catalog" or path == "/catalog.html":
+            cat = Path(__file__).parent / "catalog.html"
+            if cat.exists():
+                self.send_response(200)
+                self._cors()
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(cat.read_bytes())
+            else:
+                self._json(404, {"error": "catalog not found"})
+            return
+
         if path == "/dashboard" or path == "/dashboard.html":
             dash = Path(__file__).parent / "dashboard.html"
             if dash.exists():
