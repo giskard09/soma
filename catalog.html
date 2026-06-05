@@ -74,16 +74,16 @@ function card(a) {
     : '<span class="badge badge-unverified">unverified</span>';
 
   const cats = (a.categories || []).map(c =>
-    `<span class="cat">${c}</span>`).join('');
+    `<span class="cat">${esc(c)}</span>`).join('');
 
   const karma = a.karma_live != null ? a.karma_live : (a.karma || 0);
   const trails = a.trails_generated != null ? a.trails_generated : '—';
 
   const links = [];
-  if (a.url) links.push(`<a class="link" href="${a.url}" target="_blank">GitHub</a>`);
-  if (a.mycelium_anchor) links.push(`<a class="link" href="${a.mycelium_anchor}" target="_blank">Trails</a>`);
+  if (a.url) links.push(`<a class="link" href="${esc(safeHref(a.url))}" target="_blank" rel="noopener noreferrer">GitHub</a>`);
+  if (a.mycelium_anchor) links.push(`<a class="link" href="${esc(safeHref(a.mycelium_anchor))}" target="_blank" rel="noopener noreferrer">Trails</a>`);
   if (a.contact && a.contact.startsWith('telegram:'))
-    links.push(`<a class="link" href="https://t.me/${a.contact.replace('telegram:@','')}" target="_blank">Telegram</a>`);
+    links.push(`<a class="link" href="${esc(safeTelegram(a.contact))}" target="_blank" rel="noopener noreferrer">Telegram</a>`);
 
   return `<div class="card">
     <div class="card-header">
@@ -98,16 +98,16 @@ function card(a) {
     <div class="meta">
       <div class="meta-row">
         <span class="meta-label">Karma</span>
-        <span class="meta-value karma-value">${karma}</span>
+        <span class="meta-value karma-value">${esc(String(karma))}</span>
       </div>
       <div class="meta-row">
         <span class="meta-label">Trails generated</span>
-        <span class="meta-value trails-value">${trails}</span>
+        <span class="meta-value trails-value">${esc(String(trails))}</span>
       </div>
       ${a.delivery_time_hours > 0 ? `
       <div class="meta-row">
         <span class="meta-label">Delivery</span>
-        <span class="meta-value">${a.delivery_time_hours}h</span>
+        <span class="meta-value">${esc(String(a.delivery_time_hours))}h</span>
       </div>` : ''}
     </div>
     ${links.length ? `<div class="links">${links.join('')}</div>` : ''}
@@ -116,6 +116,19 @@ function card(a) {
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function safeHref(u) {
+  try {
+    const p = new URL(u);
+    return /^https?:$/.test(p.protocol) ? p.href : '#';
+  } catch { return '#'; }
+}
+
+function safeTelegram(contact) {
+  const handle = contact.replace('telegram:@','').replace('telegram:','');
+  if (!/^[A-Za-z0-9_]{3,32}$/.test(handle)) return '#';
+  return `https://t.me/${encodeURIComponent(handle)}`;
 }
 
 load();
