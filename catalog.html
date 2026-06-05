@@ -17,6 +17,7 @@
   .badge{font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:4px;white-space:nowrap}
   .badge-verified{background:#14532d;color:#86efac;border:1px solid #166534}
   .badge-unverified{background:#1c1917;color:#a8a29e;border:1px solid #292524}
+  .badge-integrator{background:#1e1b4b;color:#a5b4fc;border:1px solid #3730a3}
   .agent-id{font-size:.75rem;color:#64748b;font-family:monospace}
   .description{color:#cbd5e1;font-size:.85rem;line-height:1.5}
   .meta{display:flex;flex-direction:column;gap:6px;margin-top:4px}
@@ -69,9 +70,11 @@ async function load() {
 
 function card(a) {
   const verified = a.verified;
-  const badge = verified
-    ? '<span class="badge badge-verified">verified</span>'
-    : '<span class="badge badge-unverified">unverified</span>';
+  const badge = a.integrator
+    ? '<span class="badge badge-integrator">integrator</span>'
+    : verified
+      ? '<span class="badge badge-verified">verified</span>'
+      : '<span class="badge badge-unverified">unverified</span>';
 
   const cats = (a.categories || []).map(c =>
     `<span class="cat">${esc(c)}</span>`).join('');

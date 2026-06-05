@@ -18,6 +18,7 @@ trails_generated: 6
 mycelium_anchor: https://argentum-api.rgiskard.xyz/dashboard/trails?client=safeagent-prod
 active: true
 bootstrap: false
+integrator: true
 policy_version: '1.0'
 verified: false
 signature: null
