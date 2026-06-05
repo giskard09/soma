@@ -14,7 +14,6 @@ delivery_time_hours: 0
 proof_type: mycelium_trail
 contact: https://github.com/azender1/SafeAgent
 url: https://github.com/azender1/SafeAgent
-trails_generated: 4
 mycelium_anchor: https://argentum-api.rgiskard.xyz/dashboard/trails?client=safeagent-prod
 active: true
 bootstrap: false

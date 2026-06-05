@@ -79,6 +79,18 @@ _init_rate_db()
 def _rate_key(contact: str, remote_addr: str) -> str:
     return contact.strip() or remote_addr
 
+ARGENTUM_PUBLIC = "https://argentum-api.rgiskard.xyz"
+
+def _get_client_trails(agent_id: str) -> int:
+    """Consulta fuente primaria (VPS) para conteo de trails reales de un integrador."""
+    try:
+        r = requests.get(f"{ARGENTUM_PUBLIC}/mycelium/stats/{agent_id}", timeout=3)
+        if r.status_code == 200:
+            return r.json().get("client_trails", 0)
+    except Exception:
+        pass
+    return 0
+
 def _get_karma(contact: str) -> int:
     if not contact:
         return 0
@@ -176,6 +188,8 @@ class Handler(BaseHTTPRequestHandler):
             results = profiles.search(category, min_karma, max_price)
             for p in results:
                 p["karma_live"] = _get_karma(p["agent_id"])
+                if p.get("integrator"):
+                    p["trails_generated"] = _get_client_trails(p["agent_id"])
             self._json(200, {"agents": results, "count": len(results)})
             return
 
