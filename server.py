@@ -94,12 +94,15 @@ def _get_client_trails(agent_id: str) -> int:
 def _get_karma(contact: str) -> int:
     if not contact:
         return 0
-    try:
-        r = requests.get(f"{ARGENTUM_URL}/entity/{contact}", timeout=2)
-        if r.status_code == 200:
-            return r.json().get("karma", 0)
-    except Exception:
-        pass
+    # /karma/{agent_id} reads from wisdom (covers all agents including integrators).
+    # /entity/{agent_id} only covers agents with actions in the local actions table.
+    for base in (ARGENTUM_PUBLIC, ARGENTUM_URL):
+        try:
+            r = requests.get(f"{base}/karma/{contact}", timeout=2)
+            if r.status_code == 200:
+                return r.json().get("karma", 0)
+        except Exception:
+            continue
     return 0
 
 def _rate_limit_ok(key: str, karma: int) -> tuple[bool, int]:
