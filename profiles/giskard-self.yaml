@@ -17,13 +17,13 @@ min_karma_required: 0
 karma_minimum_to_hire: 0
 delivery_time_hours: 24
 proof_type: link
-contact: telegram:@petchevere
+contact: telegram:@giskard09_bot
 pub_key: iUbeMGgVBmcYlv0KLOfYrm8zO7KPPsuRY2VTq7cfrTI=
 bootstrap: true
 active: true
 policy_version: '1.0'
-updated: 1776936326
+updated: 1781049868
 created: 1776936284
 verified: true
-signature: jv8lJMOxlq32vrOXPgdnJc6zL8iYBsZ3xygzS5tKb1kBNI82sDJmt/mGD90+Y8aScUevYVudUR4GyUFHDQBIBg==
-signature_ts: 1776936326
+signature: 3dJfr8cR5rDoYECml+8yrvGyuNxL9sneDwhLJvWo07iGpqd6YsOib/vaxIa6IMTGrpvz+Md0R3j8czg8CE7cCQ==
+signature_ts: 1781049868
