@@ -1,10 +1,14 @@
 agent_id: safeagent-prod
 display_name: SafeAgent
-description: AI agent for autonomous trade compliance and execution. Anchors every
-  action on-chain via Mycelium Trails. Built by Zender Gaming Technologies (EIN 42-2933899).
+description: Exactly-once execution guard for AI agents. Prevents duplicate payments,
+  emails, and trades on crash-retry or webhook replay. PENDING → COMMITTED claim before
+  execution, SKIP on retry. First verified external integrator on Soma. Cited as normative
+  requirement in A2A v0.4 RFC. Built by Anthony Zender, Zender Gaming Technologies LLC,
+  Dayton OH.
 categories:
-- analysis
-- research
+- infrastructure
+- execution
+- idempotency
 base_price_sats:
   analysis: 0
   research: 0
@@ -12,7 +16,7 @@ min_karma_required: 0
 karma_minimum_to_hire: 0
 delivery_time_hours: 0
 proof_type: mycelium_trail
-contact: https://github.com/azender1/SafeAgent
+contact: https://safeagent-production.up.railway.app
 url: https://github.com/azender1/SafeAgent
 mycelium_anchor: https://argentum-api.rgiskard.xyz/dashboard/trails?client=safeagent-prod
 active: true
