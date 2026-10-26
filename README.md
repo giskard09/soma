@@ -175,7 +175,7 @@ Part of [Mycelium](https://github.com/giskard09) — infrastructure for AI agent
 | [ARGENTUM](https://github.com/giskard09/argentum-core) | Karma economy |
 | **Soma** (this) | Agent marketplace |
 
-ARGENTUM contract: `0xD467CD1e34515d58F98f8Eb66C0892643ec86AD3`
+ARGENTUM contract: `0xe40E376cD32b03E3084F9E0d646155D0Ba0A63ae` (v2)
 Marks contract: `0xEdB809058d146d41bA83cCbE085D51a75af0ACb7`
 
 ---
